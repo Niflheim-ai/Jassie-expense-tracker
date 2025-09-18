@@ -71,14 +71,14 @@ async function addExpense() {
         return;
     }
 
-    if (expenseAmount > 500) {
+    if (expenseAmount > 499) {
         const result = await Swal.fire({
             icon: 'warning',
-            title: 'Overspending Warning',
-            text: 'This expense is over 500. Are you sure you want to add it?',
+            title: 'Baby you\'re overspending na',
+            text: 'This expense is over 500. Sure ka?',
             showCancelButton: true,
-            confirmButtonText: 'Yes, add it!',
-            cancelButtonText: 'Cancel'
+            confirmButtonText: 'Omsimm',
+            cancelButtonText: 'Hell nah'
         });
         if (!result.isConfirmed) return;
     }
@@ -105,7 +105,7 @@ async function addExpense() {
     Swal.fire({
         icon: 'success',
         title: 'Expense Added',
-        text: 'Your expense has been added successfully!'
+        text: 'Dahan-dahan sa pag gastos ha'
     });
 }
 
@@ -125,8 +125,8 @@ async function clearAllExpenses() {
         renderExpenses();
         Swal.fire({
             icon: 'success',
-            title: 'Expenses Cleared',
-            text: 'All expenses have been cleared.'
+            title: 'Byebye gastos',
+            text: 'Panibagong week panibagong gastos'
         });
     }
 }
