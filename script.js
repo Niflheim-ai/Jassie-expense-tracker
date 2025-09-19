@@ -128,6 +128,15 @@ function updateRemainingToday() {
   const remainingToday = todayBudget - todayTotal;
   document.getElementById('budgetRemainingToday').textContent = `Remaining Budget Today: ₱${remainingToday}`;
   document.getElementById('totalExpensesToday').textContent = '₱'+todayTotal;
+  if (remainingToday <= 0) {
+    document.getElementById('budgetRemainingToday').style.color = "red";
+  }
+  else if (remainingToday < 100) {
+    document.getElementById('budgetRemainingToday').style.color = "darkorange";
+  }
+  else {
+    document.getElementById('budgetRemainingToday').style.color = "green";
+  }
 }
 
 // Set budget
@@ -165,6 +174,12 @@ function updateRemaining() {
   const remaining = budget - total;
   document.getElementById('budgetRemaining').textContent = `Remaining Budget This Week: ₱${remaining}`;
   document.getElementById('totalExpenses').textContent = '₱'+total;
+  if (total <= 0) {
+    document.getElementById('budgetRemaining').style.color = "red";
+  }
+  else {
+    document.getElementById('budgetRemaining').style.color = "green";
+  }
   updateRemainingToday();
 }
 
