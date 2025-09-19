@@ -1,23 +1,88 @@
 let budget = 0;
+let todayBudget = 0;
 let expenses = [];
 let editIndex = -1;
 
 // Load data from localStorage
 function loadData() {
     const savedBudget = localStorage.getItem('budget');
+    const savedTodayBudget = localStorage.getItem('todayBudget');
     const savedExpenses = localStorage.getItem('expenses');
-
     if (savedBudget) budget = parseFloat(savedBudget);
+    if (savedTodayBudget) todayBudget = parseFloat(savedTodayBudget);
     if (savedExpenses) expenses = JSON.parse(savedExpenses);
-
     updateBudgetDisplay();
+    updateTodayBudgetDisplay();
     renderExpenses();
+    updateRemainingToday();
+    checkDayChange(); // Check if the day has changed
 }
 
 // Save data to localStorage
 function saveData() {
     localStorage.setItem('budget', budget.toString());
+    localStorage.setItem('todayBudget', todayBudget.toString());
     localStorage.setItem('expenses', JSON.stringify(expenses));
+}
+
+// Check if the day has changed
+function checkDayChange() {
+    const lastVisitDate = localStorage.getItem('lastVisitDate');
+    const today = new Date().toDateString();
+
+    if (lastVisitDate && lastVisitDate !== today) {
+        Swal.fire({
+            icon: 'info',
+            title: 'New Day!',
+            text: 'A new day has started. Your daily budget and expenses have been reset.',
+            confirmButtonText: 'OK'
+        });
+        todayBudget = 0;
+        localStorage.setItem('todayBudget', '0');
+        updateTodayBudgetDisplay();
+    }
+
+    localStorage.setItem('lastVisitDate', today);
+}
+
+// Set today's budget
+function setTodayBudget() {
+    const todayBudgetInput = document.getElementById('todayBudgetInput');
+    todayBudget = parseFloat(todayBudgetInput.value);
+    if (isNaN(todayBudget)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Budget',
+            text: 'Please enter a valid number for today\'s budget.'
+        });
+        return;
+    }
+    updateTodayBudgetDisplay();
+    saveData();
+    todayBudgetInput.value = '';
+    Swal.fire({
+        icon: 'success',
+        title: 'Today\'s Budget Set',
+        text: `Your budget for today is now ${todayBudget}.`
+    });
+}
+
+// Update today's budget display and remaining
+function updateTodayBudgetDisplay() {
+    const todayBudgetDisplay = document.getElementById('todayBudgetDisplay');
+    todayBudgetDisplay.textContent = `Today's Budget: ${todayBudget || 'Not set'}`;
+    updateRemainingToday();
+}
+
+// Update remaining budget for today
+function updateRemainingToday() {
+    const today = new Date().toDateString();
+    const todayTotal = expenses
+        .filter(expense => new Date(expense.date).toDateString() === today)
+        .reduce((sum, expense) => sum + expense.amount, 0);
+    const remainingToday = todayBudget - todayTotal;
+    document.getElementById('budgetRemainingToday').textContent = `Remaining Budget Today: ${remainingToday}`;
+    document.getElementById('totalExpensesToday').textContent = todayTotal;
 }
 
 // Set budget
@@ -49,19 +114,19 @@ function updateBudgetDisplay() {
     updateRemaining();
 }
 
-// Update remaining budget
+// Update remaining budget this week
 function updateRemaining() {
     const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
     const remaining = budget - total;
-    document.getElementById('budgetRemaining').textContent = `Remaining: ${remaining}`;
+    document.getElementById('budgetRemaining').textContent = `Remaining Budget This Week: ${remaining}`;
     document.getElementById('totalExpenses').textContent = total;
+    updateRemainingToday();
 }
 
 // Add expense
 async function addExpense() {
     const expenseName = document.getElementById('expenseName').value.trim();
     const expenseAmount = parseFloat(document.getElementById('expenseAmount').value);
-
     if (!expenseName || isNaN(expenseAmount)) {
         Swal.fire({
             icon: 'error',
@@ -70,7 +135,6 @@ async function addExpense() {
         });
         return;
     }
-
     if (expenseAmount > 499) {
         const result = await Swal.fire({
             icon: 'warning',
@@ -82,26 +146,21 @@ async function addExpense() {
         });
         if (!result.isConfirmed) return;
     }
-
     const expense = {
         name: expenseName,
         amount: expenseAmount,
         date: new Date().toLocaleDateString()
     };
-
     if (editIndex === -1) {
         expenses.push(expense);
     } else {
         expenses[editIndex] = expense;
         editIndex = -1;
     }
-
     saveData();
     renderExpenses();
-
     document.getElementById('expenseName').value = '';
     document.getElementById('expenseAmount').value = '';
-
     Swal.fire({
         icon: 'success',
         title: 'Expense Added',
@@ -130,7 +189,6 @@ async function clearAllExpenses() {
         });
     }
 }
-
 
 // Edit expense
 function editExpense(index) {
@@ -171,7 +229,6 @@ async function removeExpense(index) {
 function renderExpenses() {
     const tableBody = document.getElementById('expenseTableBody');
     tableBody.innerHTML = '';
-
     expenses.forEach((expense, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -189,7 +246,6 @@ function renderExpenses() {
         `;
         tableBody.appendChild(row);
     });
-
     updateRemaining();
 }
 
@@ -199,7 +255,6 @@ function downloadCSV() {
     expenses.forEach(expense => {
         csv += `${expense.name},${expense.amount},${expense.date}\n`;
     });
-
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -223,24 +278,19 @@ function downloadPDF() {
     doc.text(`Budget: ${budget || 'Not set'}`, 10, 20);
     doc.text(`Total Expenses: ${expenses.reduce((sum, expense) => sum + expense.amount, 0)}`, 10, 30);
     doc.text(`Remaining: ${budget - expenses.reduce((sum, expense) => sum + expense.amount, 0)}`, 10, 40);
-
     const table = document.getElementById('expenseTable');
     const rows = [];
     const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
-
     rows.push(headers);
-
     table.querySelectorAll('tbody tr').forEach(tr => {
         const row = Array.from(tr.querySelectorAll('td')).map(td => td.textContent);
         rows.push(row);
     });
-
     doc.autoTable({
         head: [rows[0]],
         body: rows.slice(1),
         startY: 50
     });
-
     doc.save('expenses.pdf');
     Swal.fire({
         icon: 'success',
@@ -255,34 +305,26 @@ async function downloadImage() {
     const budgetDisplay = document.getElementById('budgetDisplay');
     const budgetRemaining = document.getElementById('budgetRemaining');
     const table = document.getElementById('expenseTable');
-
     const tempDiv = document.createElement('div');
     tempDiv.style.padding = '20px';
     tempDiv.style.backgroundColor = 'white';
     tempDiv.style.borderRadius = '8px';
     tempDiv.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-
     const budgetClone = budgetDisplay.cloneNode(true);
     budgetClone.style.marginBottom = '10px';
     budgetClone.style.fontSize = '18px';
     budgetClone.style.fontWeight = 'bold';
-
     const remainingClone = budgetRemaining.cloneNode(true);
     remainingClone.style.marginBottom = '20px';
     remainingClone.style.fontSize = '18px';
     remainingClone.style.fontWeight = 'bold';
-
     const tableClone = table.cloneNode(true);
-
     tempDiv.appendChild(budgetClone);
     tempDiv.appendChild(remainingClone);
     tempDiv.appendChild(tableClone);
-
     document.body.appendChild(tempDiv);
-
     const canvas = await html2canvas(tempDiv);
     const imgData = canvas.toDataURL('image/png');
-
     const a = document.createElement('a');
     a.href = imgData;
     a.download = 'expenses.png';
@@ -290,7 +332,6 @@ async function downloadImage() {
     a.click();
     document.body.removeChild(a);
     document.body.removeChild(tempDiv);
-
     Swal.fire({
         icon: 'success',
         title: 'Image Downloaded',

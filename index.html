@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jassie's     Expense Tracker</title>
+    <title>Jassie's Expense Tracker</title>
+    <link rel="shortcut icon" href="jassie_tracker_logo-removebg-preview.png" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -12,8 +13,7 @@
 <body class="bg-pink-100 min-h-screen p-4 bg-[url(bg.png)] bg-contain lg:bg-size-[50%] xl:bg-size[60%]">
     <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold text-center mb-6">Jassie's Expense Tracker</h1>
-
-        <!-- Budget Section -->
+        <!-- Weekly Budget Section -->
         <div class="flex flex-col sm:flex-row gap-2 mb-6">
             <input type="number" min="0" id="budgetInput" placeholder="Enter your budget" class="flex-1 p-2 border rounded">
             <button onclick="setBudget()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
@@ -21,8 +21,16 @@
             </button>
         </div>
         <div id="budgetDisplay" class="text-lg font-semibold mb-4">This Week's Budget: Not set</div>
-        <div id="budgetRemaining" class="text-lg font-semibold mb-4">Remaining: 0</div>
-
+        <div id="budgetRemaining" class="text-lg font-semibold mb-4">Remaining Budget This Week: 0</div>
+        <!-- Daily Budget Section -->
+        <div class="flex flex-col sm:flex-row gap-2 mb-6">
+            <input type="number" min="0" id="todayBudgetInput" placeholder="Enter today's budget" class="flex-1 p-2 border rounded">
+            <button onclick="setTodayBudget()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                Set Today's Budget
+            </button>
+        </div>
+        <div id="todayBudgetDisplay" class="text-lg font-semibold mb-4">Today's Budget: Not set</div>
+        <div id="budgetRemainingToday" class="text-lg font-semibold mb-4">Remaining Budget Today: 0</div>
         <!-- Expense Form -->
         <div class="flex flex-col sm:flex-row gap-2 mb-6">
             <input type="text" id="expenseName" placeholder="Expense name" class="flex-1 p-2 border rounded">
@@ -31,7 +39,6 @@
                 Add Expense
             </button>
         </div>
-
         <!-- Scrollable Table Container -->
         <div class="overflow-auto max-h-96 mb-6 border rounded">
             <table id="expenseTable" class="min-w-full bg-white">
@@ -46,13 +53,16 @@
                 <tbody id="expenseTableBody"></tbody>
                 <tfoot>
                     <tr>
+                        <td colspan="3" class="py-2 px-4 border font-bold text-right">Total Expenses Today:</td>
+                        <td id="totalExpensesToday" class="py-2 px-4 border font-bold">0</td>
+                    </tr>
+                    <tr>
                         <td colspan="3" class="py-2 px-4 border font-bold text-right">Total Expenses:</td>
                         <td id="totalExpenses" class="py-2 px-4 border font-bold">0</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
-
         <!-- Download Buttons -->
         <div class="flex flex-wrap gap-2 mb-4">
             <button onclick="downloadCSV()" class="w-full sm:w-auto bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
@@ -70,7 +80,6 @@
         </div>
         <p class="text-neutral-300 text-xs text-end">Made with love by Andrei :p</p>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
