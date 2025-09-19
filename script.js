@@ -3,8 +3,36 @@ let todayBudget = 0;
 let expenses = [];
 let editIndex = -1;
 
-// Load data from localStorage
-function loadData() {
+// Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBHLvfNVnZ7JTKzBCuYV9AOhneOa31qGq8",
+  authDomain: "expense-tracker-cf40c.firebaseapp.com",
+  projectId: "expense-tracker-cf40c",
+  storageBucket: "expense-tracker-cf40c.firebasestorage.app",
+  messagingSenderId: "334144233098",
+  appId: "1:334144233098:web:7959e543e1f34a5f355773",
+  measurementId: "G-KDS90YC67D"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// Load shared data
+async function loadData() {
+    const doc = await db.collection("shared").doc("sharedExpenses").get();
+    if (doc.exists) {
+        const data = doc.data();
+        budget = data.budget || 0;
+        todayBudget = data.todayBudget || 0;
+        expenses = data.expenses || [];
+        updateBudgetDisplay();
+        updateTodayBudgetDisplay();
+        renderExpenses();
+        checkDayChange();
+    }
+    /*
     const savedBudget = localStorage.getItem('budget');
     const savedTodayBudget = localStorage.getItem('todayBudget');
     const savedExpenses = localStorage.getItem('expenses');
@@ -15,14 +43,22 @@ function loadData() {
     updateTodayBudgetDisplay();
     renderExpenses();
     updateRemainingToday();
-    checkDayChange(); // Check if the day has changed
+    checkDayChange(); // Check if the day has changed */
 }
 
-// Save data to localStorage
-function saveData() {
+// Save data to firebase
+async function saveData() {
+    await db.collection("shared").doc("sharedExpenses").set({
+        budget,
+        todayBudget,
+        expenses,
+        lastVisitDate: new Date().toDateString()
+    });
+
+    /*
     localStorage.setItem('budget', budget.toString());
     localStorage.setItem('todayBudget', todayBudget.toString());
-    localStorage.setItem('expenses', JSON.stringify(expenses));
+    localStorage.setItem('expenses', JSON.stringify(expenses)); */
 }
 
 // Check if the day has changed
@@ -32,18 +68,30 @@ function checkDayChange() {
 
     if (lastVisitDate && lastVisitDate !== today) {
         Swal.fire({
-            icon: 'info',
-            title: 'New Day!',
-            text: 'A new day has started. Your daily budget and expenses have been reset.',
-            confirmButtonText: 'OK'
+        icon: 'info',
+        title: 'New Day!',
+        text: 'New gastos nanaman',
+        confirmButtonText: 'Omsim :('
         });
         todayBudget = 0;
-        localStorage.setItem('todayBudget', '0');
-        updateTodayBudgetDisplay();
+        saveData();
     }
-
     localStorage.setItem('lastVisitDate', today);
 }
+
+// Listen for real-time updates (optional)
+db.collection("shared").doc("sharedExpenses").onSnapshot((doc) => {
+    if (doc.exists) {
+        const data = doc.data();
+        budget = data.budget || 0;
+        todayBudget = data.todayBudget || 0;
+        expenses = data.expenses || [];
+        updateBudgetDisplay();
+        updateTodayBudgetDisplay();
+        renderExpenses();
+        checkDayChange();
+    }
+});
 
 // Set today's budget
 function setTodayBudget() {
@@ -338,6 +386,13 @@ async function downloadImage() {
         text: 'Your expenses have been downloaded as an image.'
     });
 }
+
+// Auto-load data
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    loadData();
+  }
+});
 
 // Initialize
 loadData();
