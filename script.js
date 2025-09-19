@@ -108,14 +108,14 @@ function setTodayBudget() {
   Swal.fire({
     icon: 'success',
     title: 'Today\'s Budget Set',
-    text: `Your budget for today is now ${todayBudget}.`
+    text: `Your budget for today is now ₱${todayBudget}.`
   });
 }
 
 // Update today's budget display and remaining
 function updateTodayBudgetDisplay() {
   const todayBudgetDisplay = document.getElementById('todayBudgetDisplay');
-  todayBudgetDisplay.textContent = `Today's Budget: ${todayBudget || 'Not set'}`;
+  todayBudgetDisplay.textContent = `Today's Budget: ₱${todayBudget || 'Not set'}`;
   updateRemainingToday();
 }
 
@@ -126,8 +126,8 @@ function updateRemainingToday() {
     .filter(expense => new Date(expense.date).toDateString() === today)
     .reduce((sum, expense) => sum + expense.amount, 0);
   const remainingToday = todayBudget - todayTotal;
-  document.getElementById('budgetRemainingToday').textContent = `Remaining Budget Today: ${remainingToday}`;
-  document.getElementById('totalExpensesToday').textContent = todayTotal;
+  document.getElementById('budgetRemainingToday').textContent = `Remaining Budget Today: ₱${remainingToday}`;
+  document.getElementById('totalExpensesToday').textContent = '₱'+todayTotal;
 }
 
 // Set budget
@@ -148,14 +148,14 @@ function setBudget() {
   Swal.fire({
     icon: 'success',
     title: 'Budget Set',
-    text: `Your budget is now ${budget}.`
+    text: `Your budget is now ₱${budget}.`
   });
 }
 
 // Update budget display and remaining
 function updateBudgetDisplay() {
   const budgetDisplay = document.getElementById('budgetDisplay');
-  budgetDisplay.textContent = `This Week's Budget: ${budget || 'Not set'}`;
+  budgetDisplay.textContent = `This Week's Budget: ₱${budget || 'Not set'}`;
   updateRemaining();
 }
 
@@ -163,8 +163,8 @@ function updateBudgetDisplay() {
 function updateRemaining() {
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const remaining = budget - total;
-  document.getElementById('budgetRemaining').textContent = `Remaining Budget This Week: ${remaining}`;
-  document.getElementById('totalExpenses').textContent = total;
+  document.getElementById('budgetRemaining').textContent = `Remaining Budget This Week: ₱${remaining}`;
+  document.getElementById('totalExpenses').textContent = '₱'+total;
   updateRemainingToday();
 }
 
@@ -279,7 +279,7 @@ function renderExpenses() {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td class="py-2 px-4 border">${expense.name}</td>
-      <td class="py-2 px-4 border">${expense.amount}</td>
+      <td class="py-2 px-4 border">₱${expense.amount}</td>
       <td class="py-2 px-4 border">${expense.date}</td>
       <td class="py-2 px-4 border">
         <button onclick="editExpense(${index})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-1">
