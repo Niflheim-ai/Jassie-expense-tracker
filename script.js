@@ -387,12 +387,5 @@ async function downloadImage() {
     });
 }
 
-// Auto-load data
-auth.onAuthStateChanged((user) => {
-  if (user) {
-    loadData();
-  }
-});
-
 // Initialize
 loadData();
