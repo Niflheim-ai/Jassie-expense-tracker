@@ -15,8 +15,25 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-pink-100 min-h-screen p-4 bg-[url(bg.png)] bg-contain lg:bg-size-[50%] xl:bg-size[60%]">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold text-center mb-6">Jassie's Expense Tracker</h1>
+    <style>
+        @keyframes floatHeart {
+            0% { transform: translateY(0) scale(1) rotate(0deg);}
+            100% { transform: translateY(-100vh) scale(1.2) rotate(20deg);}
+        }
+        .floating-heart {
+            position: absolute;
+            opacity: 0.3;
+            pointer-events: none;
+            animation: floatHeart linear infinite;
+        }
+    </style>
+    
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md z-2">
+        <div class="flex items-center justify-center mb-6 gap-2">
+            <img src="heart-1.png" alt="Logo" class="h-10 w-10">
+            <h1 class="text-2xl font-bold text-center">Jassie's Expense Tracker</h1>
+        </div>
+
         <!-- Weekly Budget Section -->
         <div class="flex flex-col sm:flex-row gap-2 mb-6">
             <input type="number" min="0" id="budgetInput" placeholder="Enter your budget" class="flex-1 p-2 border rounded">
@@ -82,8 +99,17 @@
                 Clear Table
             </button>
         </div>
-        <p class="text-neutral-300 text-xs text-end">Made with love by Andrei :p</p>
+        <p class="text-neutral-300 text-xs text-end">Made with love by Andrei &lt;3</p>
     </div>
+
+    <!-- Hearts -->
+    <img src="heart-1.png" class="floating-heart z-1" style="left:5%; bottom:-80px; width:48px; animation-duration: 12s; animation-delay: 0s;">
+    <img src="heart-1.png" class="floating-heart z-1" style="left:20%; bottom:-100px; width:36px; animation-duration: 10s; animation-delay: 2s;">
+    <img src="heart-1.png" class="floating-heart z-1" style="left:35%; bottom:-60px; width:60px; animation-duration: 14s; animation-delay: 1s;">
+    <img src="heart-1.png" class="floating-heart z-1" style="left:50%; bottom:-120px; width:40px; animation-duration: 11s; animation-delay: 3s;">
+    <img src="heart-1.png" class="floating-heart z-1" style="left:65%; bottom:-90px; width:54px; animation-duration: 13s; animation-delay: 0.5s;">
+    <img src="heart-1.png" class="floating-heart z-1" style="left:80%; bottom:-70px; width:38px; animation-duration: 9s; animation-delay: 1.5s;">
+    <img src="heart-1.png" class="floating-heart z-1" style="left:90%; bottom:-110px; width:44px; animation-duration: 15s; animation-delay: 2.5s;">
     <script src="script.js"></script>
 </body>
 </html>
