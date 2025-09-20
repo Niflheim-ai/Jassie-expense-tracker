@@ -64,7 +64,6 @@
             border-radius: 0.5rem;
             padding: 1.5rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            margin-top: 1.5rem;
         }
 
         /* Progress Bar */
@@ -84,14 +83,14 @@
     </style>
 </head>
 <body class="bg-pink-100 min-h-screen p-4 bg-[url('bg.png')] bg-contain lg:bg-size-[50%] xl:bg-size-[60%]">
-    <div class="full-width-container mx-auto">
+    <div class="full-width-container h-full mx-auto">
         <div class="flex items-center justify-center mb-6 gap-2">
             <img src="heart-1.png" alt="Logo" class="h-10 w-10">
             <h1 class="text-2xl font-bold text-center">Jassie's Expense Tracker</h1>
         </div>
 
         <!-- Summary Cards (Always Visible) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-6">
             <div class="summary-card">
                 <p class="text-sm text-gray-500">Weekly Budget</p>
                 <p id="budgetDisplay" class="text-lg font-semibold">Not set</p>
@@ -122,7 +121,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-h-100">
             <!-- Main Expense Tracker (2 columns) -->
             <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md z-2">
                 <!-- Weekly Budget Section -->
@@ -159,8 +158,8 @@
                 </div>
 
                 <!-- Scrollable Table Container with Category Column -->
-                <div class="overflow-auto max-h-96 mb-6 border rounded">
-                    <table id="expenseTable" class="min-w-full bg-white">
+                <div class="overflow-auto max-h-96 md:max-h-120 lg:max-h-full mb-6 border rounded">
+                    <table id="expenseTable" class="min-w-full bg-white relative">
                         <thead class="sticky top-0 bg-white">
                             <tr>
                                 <th class="py-2 px-4 border">Name</th>
@@ -175,7 +174,7 @@
                 </div>
 
                 <!-- Download Buttons -->
-                <div class="flex flex-wrap gap-2 mb-4">
+                <div class="flex flex-wrap gap-2">
                     <button onclick="downloadCSV()" class="w-full sm:w-auto bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
                         Download CSV
                     </button>
@@ -192,9 +191,17 @@
             </div>
 
             <!-- Right Column with Budget Allocation and Chart -->
-            <div class="lg:col-span-1 space-y-6">
+            <div class="lg:col-span-1 flex flex-col gap-6 h-full">
+                <!-- Chart Card (separate from allocation) -->
+                <div class="chart-card">
+                    <h2 class="text-xl font-bold mb-4 text-center">Expense Breakdown</h2>
+                    <div class="chart-container">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                </div>
+
                 <!-- Budget Allocation Card -->
-                <div class="bg-white p-6 rounded-lg shadow-md z-2 h-fit">
+                <div class="bg-white p-6 rounded-lg shadow-md z-2">
                     <h2 class="text-xl font-bold mb-4 text-center">Budget Allocation</h2>
 
                     <div class="mb-4">
@@ -225,27 +232,19 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Chart Card (separate from allocation) -->
-                <div class="chart-card">
-                    <h2 class="text-xl font-bold mb-4 text-center">Expense Breakdown</h2>
-                    <div class="chart-container">
-                        <canvas id="expenseChart"></canvas>
-                    </div>
-                </div>
             </div>
         </div>
         <p class="text-neutral-800 text-sm mt-3 text-end">Made with 💖 by Andrei</p>
     </div>
 
     <!-- Floating Hearts -->
-    <img src="heart-1.png" class="floating-heart z-1" style="left:5%; bottom:-80px; width:48px; animation-duration: 12s; animation-delay: 0s;">
-    <img src="heart-1.png" class="floating-heart z-1" style="left:20%; bottom:-100px; width:36px; animation-duration: 10s; animation-delay: 2s;">
-    <img src="heart-1.png" class="floating-heart z-1" style="left:35%; bottom:-60px; width:60px; animation-duration: 14s; animation-delay: 1s;">
-    <img src="heart-1.png" class="floating-heart z-1" style="left:50%; bottom:-120px; width:40px; animation-duration: 11s; animation-delay: 3s;">
-    <img src="heart-1.png" class="floating-heart z-1" style="left:65%; bottom:-90px; width:54px; animation-duration: 13s; animation-delay: 0.5s;">
-    <img src="heart-1.png" class="floating-heart z-1" style="left:80%; bottom:-70px; width:38px; animation-duration: 9s; animation-delay: 1.5s;">
-    <img src="heart-1.png" class="floating-heart z-1" style="left:90%; bottom:-110px; width:44px; animation-duration: 15s; animation-delay: 2.5s;">
+    <img src="heart-1.png" class="floating-heart z-1 overflow-y-hidden" style="left:5%; bottom:-80px; width:48px; animation-duration: 12s; animation-delay: 0s;">
+    <img src="heart-1.png" class="floating-heart z-1 overflow-y-hidden" style="left:20%; bottom:-100px; width:36px; animation-duration: 10s; animation-delay: 2s;">
+    <img src="heart-1.png" class="floating-heart z-1 overflow-y-hidden" style="left:35%; bottom:-60px; width:60px; animation-duration: 14s; animation-delay: 1s;">
+    <img src="heart-1.png" class="floating-heart z-1 overflow-y-hidden" style="left:50%; bottom:-120px; width:40px; animation-duration: 11s; animation-delay: 3s;">
+    <img src="heart-1.png" class="floating-heart z-1 overflow-y-hidden" style="left:65%; bottom:-90px; width:54px; animation-duration: 13s; animation-delay: 0.5s;">
+    <img src="heart-1.png" class="floating-heart z-1 overflow-y-hidden" style="left:80%; bottom:-70px; width:38px; animation-duration: 9s; animation-delay: 1.5s;">
+    <img src="heart-1.png" class="floating-heart z-1 overflow-y-hidden" style="left:90%; bottom:-110px; width:44px; animation-duration: 15s; animation-delay: 2.5s;">
 
     <!-- Load scripts -->
     <script src="chart-config.js"></script>
