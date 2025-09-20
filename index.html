@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jassie's Expense Tracker</title>
     <link rel="shortcut icon" href="jassie_tracker_logo-removebg-preview.png" type="image/x-icon">
-    <!-- Firebase ref -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <!--  -->
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Other libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body class="bg-pink-100 min-h-screen p-4 bg-[url(bg.png)] bg-contain lg:bg-size-[50%] xl:bg-size[60%]">
     <style>
         @keyframes floatHeart {
             0% { transform: translateY(0) scale(1) rotate(0deg);}
@@ -26,83 +27,218 @@
             pointer-events: none;
             animation: floatHeart linear infinite;
         }
+        /* Category colors */
+        .category-food { background-color: #FFDDDD; }
+        .category-groceries { background-color: #DDFFDD; }
+        .category-transportation { background-color: #DDDDFF; }
+        .category-kapilya { background-color: #FFFFDD; }
+        .category-savings { background-color: #FFDDFF; }
+        /* Custom container for full width */
+        .full-width-container {
+            max-width: none;
+            width: 100%;
+            padding: 0 1rem;
+        }
+        @media (min-width: 1024px) {
+            .full-width-container {
+                max-width: none;
+            }
+        }
+        /* Summary cards */
+        .summary-card {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        /* Chart container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        /* Chart card */
+        .chart-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 1.5rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            height: 6px;
+            margin: 4px 0;
+        }
+
+        .progress-bar {
+            border-radius: 9999px;
+            height: 100%;
+        }
+
     </style>
-    
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md z-2">
+</head>
+<body class="bg-pink-100 min-h-screen p-4 bg-[url('bg.png')] bg-contain lg:bg-size-[50%] xl:bg-size-[60%]">
+    <div class="full-width-container mx-auto">
         <div class="flex items-center justify-center mb-6 gap-2">
             <img src="heart-1.png" alt="Logo" class="h-10 w-10">
             <h1 class="text-2xl font-bold text-center">Jassie's Expense Tracker</h1>
         </div>
 
-        <!-- Weekly Budget Section -->
-        <div class="flex flex-col sm:flex-row gap-2 mb-6">
-            <input type="number" min="0" id="budgetInput" placeholder="Enter your budget" class="flex-1 p-2 border rounded">
-            <button onclick="setBudget()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                Set Budget
-            </button>
+        <!-- Summary Cards (Always Visible) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="summary-card">
+                <p class="text-sm text-gray-500">Weekly Budget</p>
+                <p id="budgetDisplay" class="text-lg font-semibold">Not set</p>
+            </div>
+            <div class="summary-card">
+                <p class="text-sm text-gray-500">Remaining This Week</p>
+                <p id="budgetRemaining" class="text-lg font-semibold">0</p>
+            </div>
+            <div class="summary-card">
+                <p class="text-sm text-gray-500">Today's Budget</p>
+                <p id="todayBudgetDisplay" class="text-lg font-semibold">Not set</p>
+            </div>
+            <div class="summary-card">
+                <p class="text-sm text-gray-500">Remaining Today</p>
+                <p id="budgetRemainingToday" class="text-lg font-semibold">0</p>
+            </div>
         </div>
-        <div id="budgetDisplay" class="text-lg font-semibold mb-4">This Week's Budget: Not set</div>
-        <div id="budgetRemaining" class="text-lg font-semibold mb-4">Remaining Budget This Week: 0</div>
-        <!-- Daily Budget Section -->
-        <div class="flex flex-col sm:flex-row gap-2 mb-6">
-            <input type="number" min="0" id="todayBudgetInput" placeholder="Enter today's budget" class="flex-1 p-2 border rounded">
-            <button onclick="setTodayBudget()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
-                Set Today's Budget
-            </button>
+
+        <!-- Expense Totals Summary (Always Visible) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="summary-card bg-pink-50">
+                <p class="text-sm text-gray-500">Total Expenses Today</p>
+                <p id="totalExpensesToday" class="text-2xl font-bold text-pink-600">0</p>
+            </div>
+            <div class="summary-card bg-pink-50">
+                <p class="text-sm text-gray-500">Total Expenses</p>
+                <p id="totalExpenses" class="text-2xl font-bold text-pink-600">0</p>
+            </div>
         </div>
-        <div id="todayBudgetDisplay" class="text-lg font-semibold mb-4">Today's Budget: Not set</div>
-        <div id="budgetRemainingToday" class="text-lg font-semibold mb-4">Remaining Budget Today: 0</div>
-        <!-- Expense Form -->
-        <div class="flex flex-col sm:flex-row gap-2 mb-6">
-            <input type="text" id="expenseName" placeholder="Expense name" class="flex-1 p-2 border rounded">
-            <input type="number" id="expenseAmount" placeholder="Amount" class="flex-1 p-2 border rounded">
-            <button onclick="addExpense()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                Add Expense
-            </button>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Expense Tracker (2 columns) -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md z-2">
+                <!-- Weekly Budget Section -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-6">
+                    <input type="number" min="0" id="budgetInput" placeholder="Enter your budget" class="flex-1 p-2 border rounded">
+                    <button onclick="setBudget()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Set Budget
+                    </button>
+                </div>
+
+                <!-- Daily Budget Section -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-6">
+                    <input type="number" min="0" id="todayBudgetInput" placeholder="Enter today's budget" class="flex-1 p-2 border rounded">
+                    <button onclick="setTodayBudget()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                        Set Today's Budget
+                    </button>
+                </div>
+
+                <!-- Expense Form with Category Dropdown -->
+                <div class="flex flex-col flex-wrap sm:flex-row gap-2 mb-6">
+                    <input type="text" id="expenseName" placeholder="Expense name" class="flex-1 p-2 border rounded">
+                    <input type="number" id="expenseAmount" placeholder="Amount" class="flex-1 p-2 border rounded">
+                    <select id="expenseCategory" class="flex-1 p-2 border rounded">
+                        <option value="">Select Category</option>
+                        <option value="Food Allowance">Food Allowance</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Kapilya">Kapilya</option>
+                        <option value="Savings">Savings</option>
+                    </select>
+                    <button onclick="addExpense()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Add Expense
+                    </button>
+                </div>
+
+                <!-- Scrollable Table Container with Category Column -->
+                <div class="overflow-auto max-h-96 mb-6 border rounded">
+                    <table id="expenseTable" class="min-w-full bg-white">
+                        <thead class="sticky top-0 bg-white">
+                            <tr>
+                                <th class="py-2 px-4 border">Name</th>
+                                <th class="py-2 px-4 border">Amount</th>
+                                <th class="py-2 px-4 border">Category</th>
+                                <th class="py-2 px-4 border">Date</th>
+                                <th class="py-2 px-4 border">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Download Buttons -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button onclick="downloadCSV()" class="w-full sm:w-auto bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        Download CSV
+                    </button>
+                    <button onclick="downloadPDF()" class="w-full sm:w-auto bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                        Download PDF
+                    </button>
+                    <button onclick="downloadImage()" class="w-full sm:w-auto bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                        Download Image
+                    </button>
+                    <button onclick="clearAllExpenses()" class="w-full sm:w-auto bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+                        Clear Table
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column with Budget Allocation and Chart -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Budget Allocation Card -->
+                <div class="bg-white p-6 rounded-lg shadow-md z-2 h-fit">
+                    <h2 class="text-xl font-bold mb-4 text-center">Budget Allocation</h2>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Category</label>
+                        <select id="allocationCategory" class="w-full p-2 border rounded">
+                            <option value="">Select Category</option>
+                            <option value="Food Allowance">Food Allowance</option>
+                            <option value="Groceries">Groceries</option>
+                            <option value="Transportation">Transportation</option>
+                            <option value="Kapilya">Kapilya</option>
+                            <option value="Savings">Savings</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Amount</label>
+                        <input type="number" id="allocationAmount" placeholder="Amount" class="w-full p-2 border rounded">
+                    </div>
+
+                    <button id="allocateBudgetBtn" onclick="allocateBudget()" class="w-full bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 mb-4">
+                        Allocate Budget
+                    </button>
+
+                    <div>
+                        <h3 class="font-semibold mb-2">Allocated Budgets:</h3>
+                        <div id="allocationsList" class="space-y-2 max-h-[400px] overflow-y-auto">
+                            <!-- Allocation items with spending info will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Card (separate from allocation) -->
+                <div class="chart-card">
+                    <h2 class="text-xl font-bold mb-4 text-center">Expense Breakdown</h2>
+                    <div class="chart-container">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
-        <!-- Scrollable Table Container -->
-        <div class="overflow-auto max-h-96 mb-6 border rounded">
-            <table id="expenseTable" class="min-w-full bg-white">
-                <thead class="sticky top-0 bg-white">
-                    <tr>
-                        <th class="py-2 px-4 border">Name</th>
-                        <th class="py-2 px-4 border">Amount</th>
-                        <th class="py-2 px-4 border">Date</th>
-                        <th class="py-2 px-4 border">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="expenseTableBody"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" class="py-2 px-4 border font-bold text-right">Total Expenses Today:</td>
-                        <td id="totalExpensesToday" class="py-2 px-4 border font-bold">0</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3" class="py-2 px-4 border font-bold text-right">Total Expenses:</td>
-                        <td id="totalExpenses" class="py-2 px-4 border font-bold">0</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-        <!-- Download Buttons -->
-        <div class="flex flex-wrap gap-2 mb-4">
-            <button onclick="downloadCSV()" class="w-full sm:w-auto bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                Download CSV
-            </button>
-            <button onclick="downloadPDF()" class="w-full sm:w-auto bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-                Download PDF
-            </button>
-            <button onclick="downloadImage()" class="w-full sm:w-auto bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
-                Download Image
-            </button>
-            <button onclick="clearAllExpenses()" class="w-full sm:w-auto bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
-                Clear Table
-            </button>
-        </div>
-        <p class="text-neutral-300 text-xs text-end">Made with love by Andrei &lt;3</p>
+        <p class="text-neutral-800 text-sm mt-3 text-end">Made with 💖 by Andrei</p>
     </div>
 
-    <!-- Hearts -->
+    <!-- Floating Hearts -->
     <img src="heart-1.png" class="floating-heart z-1" style="left:5%; bottom:-80px; width:48px; animation-duration: 12s; animation-delay: 0s;">
     <img src="heart-1.png" class="floating-heart z-1" style="left:20%; bottom:-100px; width:36px; animation-duration: 10s; animation-delay: 2s;">
     <img src="heart-1.png" class="floating-heart z-1" style="left:35%; bottom:-60px; width:60px; animation-duration: 14s; animation-delay: 1s;">
@@ -110,6 +246,26 @@
     <img src="heart-1.png" class="floating-heart z-1" style="left:65%; bottom:-90px; width:54px; animation-duration: 13s; animation-delay: 0.5s;">
     <img src="heart-1.png" class="floating-heart z-1" style="left:80%; bottom:-70px; width:38px; animation-duration: 9s; animation-delay: 1.5s;">
     <img src="heart-1.png" class="floating-heart z-1" style="left:90%; bottom:-110px; width:44px; animation-duration: 15s; animation-delay: 2.5s;">
+
+    <!-- Load scripts -->
+    <script src="chart-config.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Initialize chart when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+
+            // Store original renderExpenses function
+            const originalRenderExpenses = window.renderExpenses;
+
+            // Override renderExpenses to update chart
+            window.renderExpenses = function() {
+                originalRenderExpenses();
+                if (typeof updateChart === 'function') {
+                    updateChart(expenses);
+                }
+            };
+        });
+    </script>
 </body>
 </html>
