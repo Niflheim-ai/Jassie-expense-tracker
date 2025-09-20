@@ -244,7 +244,7 @@ function updateAllocationsList() {
     <div class="flex justify-between">
       <span class="font-semibold">Total Remaining:</span>
       <span class="${totalRemaining < 0 ? 'text-red-500' : 'text-green-500'}">
-        ₱${Math.abs(totalRemaining).toFixed(2)}
+        ₱${totalRemaining.toFixed(2)}
       </span>
     </div>
     <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
@@ -289,7 +289,7 @@ function updateAllocationsList() {
       <div class="flex justify-between text-sm">
         <span>Spent: ₱${spent.toFixed(2)} (${percentageUsed}%)</span>
         <span class="${remaining < 0 ? 'text-red-500' : 'text-green-500'}">
-          ${remaining < 0 ? 'Over' : 'Remaining'}: ₱${Math.abs(remaining).toFixed(2)}
+          ${remaining < 0 ? 'Over' : 'Remaining'}: ₱${remaining.toFixed(2)}
         </span>
       </div>
       <div class="flex space-x-2 mt-1">
