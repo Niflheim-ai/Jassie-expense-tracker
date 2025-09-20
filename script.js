@@ -525,11 +525,11 @@ function renderExpenses() {
     }
 
     row.innerHTML = `
-      <td class="py-2 px-4 border">${expense.name}</td>
-      <td class="py-2 px-4 border">₱${expense.amount.toFixed(2)}</td>
-      <td class="py-2 px-4 border ${categoryClass}">${expense.category || 'Uncategorized'}</td>
-      <td class="py-2 px-4 border">${expense.date}</td>
-      <td class="py-2 px-4 border">
+      <td class="py-2 px-4 border text-center">${expense.name}</td>
+      <td class="py-2 px-4 border text-center">₱${expense.amount.toFixed(2)}</td>
+      <td class="py-2 px-4 border text-center ${categoryClass}">${expense.category || 'Uncategorized'}</td>
+      <td class="py-2 px-4 border text-center">${expense.date}</td>
+      <td class="py-2 px-4 border flex gap-2 justify-center">
         <button onclick="editExpense(${expenses.indexOf(expense)})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-1">
           Edit
         </button>
