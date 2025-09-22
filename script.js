@@ -3,7 +3,7 @@ let todayBudget = 0;
 let expenses = [];
 let editIndex = -1;
 let allocations = {};
-let editAllocationCategory = null; // Track which allocation is being edited
+let editAllocationCategory = null;
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -45,6 +45,8 @@ async function loadData() {
       updateBudgetDisplay();
       updateTodayBudgetDisplay();
       renderExpenses();
+      // Set default date to today
+      document.getElementById('expenseDate').valueAsDate = new Date();
     }
   } catch (error) {
     console.error("Error loading data:", error);
@@ -119,7 +121,6 @@ async function allocateBudget() {
   const selectedOption = categorySelect.options[categorySelect.selectedIndex];
   const category = selectedOption ? selectedOption.text : '';
   const amount = parseFloat(document.getElementById('allocationAmount').value);
-
   if (!category || isNaN(amount) || amount <= 0) {
     Swal.fire({
       icon: 'error',
@@ -128,7 +129,6 @@ async function allocateBudget() {
     });
     return;
   }
-
   // Check if we're editing an existing allocation
   if (editAllocationCategory) {
     // Delete the old category key if it's different from the new one
@@ -151,11 +151,9 @@ async function allocateBudget() {
       });
       return;
     }
-
     // Add new allocation with properly cased category name
     allocations[category] = amount;
   }
-
   updateAllocationsList();
   saveData();
   document.getElementById('allocationCategory').value = '';
@@ -195,7 +193,6 @@ async function removeAllocation(category) {
     confirmButtonText: 'Yes, remove it!',
     cancelButtonText: 'Cancel'
   });
-
   if (result.isConfirmed) {
     delete allocations[category];
     updateAllocationsList();
@@ -212,21 +209,18 @@ async function removeAllocation(category) {
 function updateAllocationsList() {
   const allocationsList = document.getElementById('allocationsList');
   allocationsList.innerHTML = '';
-
   // Calculate total spent per category
   const categorySpending = {};
   expenses.forEach(expense => {
     const category = expense.category || 'Uncategorized';
     categorySpending[category] = (categorySpending[category] || 0) + expense.amount;
   });
-
   // Calculate totals
   const totalAllocated = Object.values(allocations).reduce((sum, amount) => sum + amount, 0);
   const totalSpent = Object.entries(categorySpending)
     .filter(([category]) => allocations[category])
     .reduce((sum, [_, amount]) => sum + amount, 0);
   const totalRemaining = totalAllocated - totalSpent;
-
   // Add summary section
   const summaryDiv = document.createElement('div');
   summaryDiv.className = 'mb-4 p-3 bg-gray-50 rounded-lg';
@@ -254,30 +248,24 @@ function updateAllocationsList() {
     </div>
   `;
   allocationsList.appendChild(summaryDiv);
-
   // Add individual allocations
   const sortedAllocations = Object.entries(allocations)
     .sort((a, b) => b[1] - a[1]);
-
   if (sortedAllocations.length === 0) {
     allocationsList.innerHTML = '<p class="text-gray-500 text-center py-4">No allocations yet</p>';
     return;
   }
-
   // Rest of the function remains the same...
   sortedAllocations.forEach(([category, amount]) => {
     const spent = categorySpending[category] || 0;
     const remaining = amount - spent;
     const percentageUsed = amount > 0 ? Math.round((spent / amount) * 100) : 0;
-
     const div = document.createElement('div');
     div.className = 'flex flex-col p-2 bg-white rounded shadow-sm mb-2';
-
     // Progress bar color based on usage
     let progressColor = 'bg-blue-500';
     if (percentageUsed > 80) progressColor = 'bg-red-500';
     else if (percentageUsed > 50) progressColor = 'bg-yellow-500';
-
     div.innerHTML = `
       <div class="flex justify-between items-center mb-1">
         <span class="font-medium">${category}</span>
@@ -303,7 +291,6 @@ function updateAllocationsList() {
     `;
     allocationsList.appendChild(div);
   });
-
   // Add cancel button if editing
   if (editAllocationCategory) {
     const cancelDiv = document.createElement('div');
@@ -330,11 +317,9 @@ function updateRemainingToday() {
   const todayTotal = expenses
     .filter(expense => new Date(expense.date).toDateString() === today)
     .reduce((sum, expense) => sum + expense.amount, 0);
-
   const remainingToday = todayBudget - todayTotal;
   document.getElementById('budgetRemainingToday').textContent = `Remaining Budget Today: ₱${remainingToday.toFixed(2)}`;
   document.getElementById('totalExpensesToday').textContent = '₱' + todayTotal.toFixed(2);
-
   // Color coding for remaining budget
   if (remainingToday < 0) {
     document.getElementById('budgetRemainingToday').style.color = "red";
@@ -380,10 +365,8 @@ function updateBudgetDisplay() {
 function updateRemaining() {
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const remaining = budget - total;
-
   document.getElementById('budgetRemaining').textContent = `Remaining Budget This Week: ₱${remaining.toFixed(2)}`;
   document.getElementById('totalExpenses').textContent = '₱' + total.toFixed(2);
-
   // Color coding for remaining budget
   if (remaining < 0) {
     document.getElementById('budgetRemaining').style.color = "red";
@@ -397,14 +380,15 @@ function updateRemaining() {
 async function addExpense() {
   const expenseName = document.getElementById('expenseName').value.trim();
   const expenseAmount = parseFloat(document.getElementById('expenseAmount').value);
+  const expenseDate = document.getElementById('expenseDate').value;
   const categorySelect = document.getElementById('expenseCategory');
-  const category = categorySelect.value || 'Uncategorized'; // Use value, not text
+  const category = categorySelect.value || 'Uncategorized';
 
-  if (!expenseName || isNaN(expenseAmount)) {
+  if (!expenseName || isNaN(expenseAmount) || !expenseDate) {
     Swal.fire({
       icon: 'error',
       title: 'Invalid Input',
-      text: 'Please enter both expense name and amount.'
+      text: 'Please enter expense name, amount, and date.'
     });
     return;
   }
@@ -425,7 +409,7 @@ async function addExpense() {
     name: expenseName,
     amount: expenseAmount,
     category: category,
-    date: new Date().toLocaleDateString()
+    date: new Date(expenseDate).toLocaleDateString()
   };
 
   if (editIndex === -1) {
@@ -437,9 +421,12 @@ async function addExpense() {
 
   saveData();
   renderExpenses();
+
   document.getElementById('expenseName').value = '';
   document.getElementById('expenseAmount').value = '';
+  document.getElementById('expenseDate').value = '';
   document.getElementById('expenseCategory').value = '';
+
   Swal.fire({
     icon: 'success',
     title: 'Expense Added',
@@ -474,6 +461,7 @@ function editExpense(index) {
   const expense = expenses[index];
   document.getElementById('expenseName').value = expense.name;
   document.getElementById('expenseAmount').value = expense.amount;
+  document.getElementById('expenseDate').valueAsDate = new Date(expense.date);
   document.getElementById('expenseCategory').value = expense.category || '';
   editIndex = index;
   Swal.fire({
@@ -506,46 +494,76 @@ async function removeExpense(index) {
   }
 }
 
+// Sort expenses
+function sortExpenses(criteria) {
+  // Remove active class from all buttons
+  document.querySelectorAll('.sort-button').forEach(button => {
+    button.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500');
+  });
+  // Add active class to the clicked button
+  event.target.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+
+  // Sort logic
+  switch (criteria) {
+    case 'date':
+      expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+      break;
+    case 'amount':
+      expenses.sort((a, b) => b.amount - a.amount);
+      break;
+    case 'category':
+      expenses.sort((a, b) => {
+        if (a.category < b.category) return -1;
+        if (a.category > b.category) return 1;
+        return 0;
+      });
+      break;
+    default:
+      break;
+  }
+  renderExpenses();
+}
+
 // Render expenses in table
 function renderExpenses() {
-  const tableBody = document.getElementById('expenseTableBody');
-  tableBody.innerHTML = '';
+    const tableBody = document.getElementById('expenseTableBody');
+    tableBody.innerHTML = '';
 
-  // Sort expenses by date (newest first)
-  const sortedExpenses = [...expenses].sort((a, b) => {
-    return new Date(b.date) - new Date(a.date);
-  });
+    expenses.forEach((expense, index) => {
+        const row = document.createElement('tr');
+        // Map category to class
+        let categoryClass = '';
+        if (expense.category) {
+            const categoryKey = expense.category.replace(/\s+/g, '-').toLowerCase();
+            if (categoryKey === 'food-allowance') {
+                categoryClass = 'category-food';
+            } else {
+                categoryClass = `category-${categoryKey}`;
+            }
+        }
+        row.innerHTML = `
+            <td class="py-2 px-4 border text-center">${expense.name}</td>
+            <td class="py-2 px-4 border text-center">₱${expense.amount.toFixed(2)}</td>
+            <td class="py-2 px-4 border text-center ${categoryClass}">${expense.category || 'Uncategorized'}</td>
+            <td class="py-2 px-4 border text-center">${expense.date}</td>
+            <td class="py-2 px-4 border flex gap-2 justify-center">
+                <button onclick="editExpense(${index})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-1">
+                    Edit
+                </button>
+                <button onclick="removeExpense(${index})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
+                    Remove
+                </button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
 
-  sortedExpenses.forEach((expense, index) => {
-    const row = document.createElement('tr');
-    // Add category class for styling
-    let categoryClass = '';
-    if (expense.category) {
-      categoryClass = `category-${expense.category.replace(' ', '-').toLowerCase()}`;
+    updateRemaining();
+    updateRemainingToday();
+
+    if (typeof updateChart === 'function') {
+        updateChart(expenses);
     }
-
-    row.innerHTML = `
-      <td class="py-2 px-4 border text-center">${expense.name}</td>
-      <td class="py-2 px-4 border text-center">₱${expense.amount.toFixed(2)}</td>
-      <td class="py-2 px-4 border text-center ${categoryClass}">${expense.category || 'Uncategorized'}</td>
-      <td class="py-2 px-4 border text-center">${expense.date}</td>
-      <td class="py-2 px-4 border flex gap-2 justify-center">
-        <button onclick="editExpense(${expenses.indexOf(expense)})" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-1">
-          Edit
-        </button>
-        <button onclick="removeExpense(${expenses.indexOf(expense)})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
-          Remove
-        </button>
-      </td>
-    `;
-    tableBody.appendChild(row);
-  });
-
-  updateRemaining();
-  // Update chart if it exists
-  if (typeof updateChart === 'function') {
-    updateChart(expenses);
-  }
 }
 
 // Download as CSV
@@ -577,12 +595,10 @@ function downloadPDF() {
   doc.text(`Budget: ₱${budget ? budget.toFixed(2) : 'Not set'}`, 10, 20);
   doc.text(`Total Expenses: ₱${expenses.reduce((sum, expense) => sum + expense.amount, 0).toFixed(2)}`, 10, 30);
   doc.text(`Remaining: ₱${(budget - expenses.reduce((sum, expense) => sum + expense.amount, 0)).toFixed(2)}`, 10, 40);
-
   const table = document.getElementById('expenseTable');
   const rows = [];
   const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
   rows.push(headers);
-
   // Clone the table body to avoid modifying the original
   const tableClone = table.cloneNode(true);
   Array.from(tableClone.querySelectorAll('td:nth-child(2)')).forEach(td => {
@@ -590,12 +606,10 @@ function downloadPDF() {
       td.textContent = '₱' + td.textContent;
     }
   });
-
   tableClone.querySelectorAll('tbody tr').forEach(tr => {
     const row = Array.from(tr.querySelectorAll('td')).map(td => td.textContent);
     rows.push(row);
   });
-
   doc.autoTable({
     head: [rows[0]],
     body: rows.slice(1),
@@ -617,24 +631,20 @@ async function downloadImage() {
   tempDiv.style.backgroundColor = 'white';
   tempDiv.style.borderRadius = '8px';
   tempDiv.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-
   // Clone the summary cards
   const summaryCards = document.querySelectorAll('.summary-card');
   summaryCards.forEach(card => {
     const clone = card.cloneNode(true);
     tempDiv.appendChild(clone);
   });
-
   // Add some spacing
   const spacing = document.createElement('div');
   spacing.style.height = '20px';
   tempDiv.appendChild(spacing);
-
   // Clone the expense table
   const table = document.getElementById('expenseTable');
   const tableClone = table.cloneNode(true);
   tempDiv.appendChild(tableClone);
-
   document.body.appendChild(tempDiv);
   const canvas = await html2canvas(tempDiv);
   const imgData = canvas.toDataURL('image/png');
