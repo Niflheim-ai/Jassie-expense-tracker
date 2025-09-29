@@ -51,7 +51,7 @@ function updateChart(expenses) {
     // Calculate totals by category
     const categoryTotals = {};
     const categories = [
-        "Food Allowance", "Groceries", "Transportation",
+        "Baon", "Groceries", "Transportation",
         "Kapilya", "Savings", "Uncategorized"
     ];
 
@@ -72,7 +72,7 @@ function updateChart(expenses) {
 
     // Colors for each category
     const backgroundColors = [
-        '#FF6384', // Food Allowance (red)
+        '#FF6384', // Baon (red)
         '#36A2EB', // Groceries (blue)
         '#FFCE56', // Transportation (yellow)
         '#4BC0C0', // Kapilya (teal)

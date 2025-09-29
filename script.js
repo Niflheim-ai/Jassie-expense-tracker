@@ -25,13 +25,16 @@ async function loadData() {
     const doc = await db.collection("shared").doc("sharedExpenses").get();
     if (doc.exists) {
       const data = doc.data();
+
       budget = data.budget || 0;
       todayBudget = data.todayBudget || 0;
       expenses = data.expenses || [];
       allocations = data.allocations || {};
+
       updateAllocationsList();
       const firestoreLastVisitDate = data.lastVisitDate;
       const today = new Date().toDateString();
+
       if (firestoreLastVisitDate && firestoreLastVisitDate !== today) {
         Swal.fire({
           icon: 'info',
@@ -45,6 +48,7 @@ async function loadData() {
       updateBudgetDisplay();
       updateTodayBudgetDisplay();
       renderExpenses();
+      
       // Set default date to today
       document.getElementById('expenseDate').valueAsDate = new Date();
     }
@@ -535,8 +539,8 @@ function renderExpenses() {
         let categoryClass = '';
         if (expense.category) {
             const categoryKey = expense.category.replace(/\s+/g, '-').toLowerCase();
-            if (categoryKey === 'food-allowance') {
-                categoryClass = 'category-food';
+            if (categoryKey === 'baon') {
+                categoryClass = 'category-baon';
             } else {
                 categoryClass = `category-${categoryKey}`;
             }
